@@ -4,13 +4,14 @@ from config import NODE_ID, OTHER_NODES
 from state import requesting_cs, replies_received, request_clock
 from communication import send_request_to_all
 import requests
+from logger import logger
 
 def critical_section_loop():
     global requesting_cs, request_clock
     while True:
         time.sleep(10 + int(NODE_ID[-1]))
 
-        print(f"[{NODE_ID}] Trying to enter critical section...")
+        logger.info(f"[{NODE_ID}] Trying to enter critical section...")
         requesting_cs = True
         replies_received.clear()
 
@@ -19,9 +20,9 @@ def critical_section_loop():
         while len(replies_received) < len(OTHER_NODES):
             time.sleep(0.5)
 
-        print(f"[{NODE_ID}] >>> ENTERING CRITICAL SECTION <<<")
+        logger.info(f"[{NODE_ID}] >>> ENTERING CRITICAL SECTION <<<")
         time.sleep(5)
-        print(f"[{NODE_ID}] <<< LEAVING CRITICAL SECTION >>>")
+        logger.info(f"[{NODE_ID}] <<< LEAVING CRITICAL SECTION >>>")
 
         requesting_cs = False
         request_clock = None
@@ -34,4 +35,4 @@ def critical_section_loop():
                     timeout=2,
                 )
             except Exception as e:
-                print(f"[{NODE_ID}] Failed to send release to {node}: {e}")
+                logger.error(f"[{NODE_ID}] Failed to send release to {node}: {e}")

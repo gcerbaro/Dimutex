@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from config import NODE_ID
 from state import increment_clock, requesting_cs, request_clock, deferred_replies, replies_received
 from communication import send_reply
+from logger import logger
 
 bp = Blueprint('routes', __name__)
 
@@ -13,7 +14,7 @@ def on_request():
 
     increment_clock(sender_clock)
 
-    print(f"[{NODE_ID}] Received REQUEST from {sender_id} with clock {sender_clock}")
+    logger.info(f"[{NODE_ID}] Received REQUEST from {sender_id} with clock {sender_clock}")
 
     defer = False
     if requesting_cs:
@@ -22,7 +23,7 @@ def on_request():
 
     if defer:
         deferred_replies.add(sender_id)
-        print(f"[{NODE_ID}] Deferred reply to {sender_id}")
+        logger.info(f"[{NODE_ID}] Deferred reply to {sender_id}")
     else:
         send_reply(sender_id + ":5000")
 
@@ -33,7 +34,7 @@ def on_reply():
     data = request.get_json()
     sender_id = data["node_id"]
 
-    print(f"[{NODE_ID}] Received REPLY from {sender_id}")
+    logger.info(f"[{NODE_ID}] Received REPLY from {sender_id}")
     replies_received.add(sender_id)
 
     return jsonify({"ok": True})
@@ -44,7 +45,7 @@ def on_release():
     data = request.get_json()
     sender_id = data["node_id"]
 
-    print(f"[{NODE_ID}] Received RELEASE from {sender_id}")
+    logger.info(f"[{NODE_ID}] Received RELEASE from {sender_id}")
 
     if sender_id in deferred_replies:
         send_reply(sender_id + ":5000")
