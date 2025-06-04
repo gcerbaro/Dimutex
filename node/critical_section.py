@@ -5,11 +5,12 @@ from state import requesting_cs, replies_received, request_clock
 from communication import send_request_to_all
 import requests
 from logger import logger
+import random
 
 def critical_section_loop():
     global requesting_cs, request_clock
     while True:
-        time.sleep(10 + int(NODE_ID[-1]))
+        time.sleep(random.randint(5, 15))
 
         logger.info(f"[{NODE_ID}] Trying to enter critical section...")
         requesting_cs = True

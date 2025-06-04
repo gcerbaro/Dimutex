@@ -1,5 +1,6 @@
 import os
 import colorlog
+import logging
 
 def setup_logger():
     NODE_ID = os.environ.get("NODE_ID", "unknown")  # <- Pega o ID do container
@@ -17,10 +18,9 @@ def setup_logger():
     ))
 
     logger = colorlog.getLogger()
-    logger.setLevel(logger.INFO)
+    logger.setLevel(logging.INFO)
     logger.handlers = [handler]
 
     return logger
 
 logger = setup_logger()
-#Test
