@@ -1,35 +1,36 @@
 import time
-import threading
-from config import NODE_ID, OTHER_NODES
-from state import requesting_cs, replies_received, request_clock
+import state
 from communication import send_request_to_all
-import requests
 from logger import logger
-import random
+from config import NODE_ID, OTHER_NODES
+
 
 def critical_section_loop():
-    global requesting_cs, request_clock
     while True:
-        time.sleep(random.randint(5, 15))
+        # Simula o processo querendo acessar a CS
+        time.sleep(10)
 
-        logger.info(f"[{NODE_ID}] Trying to enter critical section...")
-        requesting_cs = True
-        replies_received.clear()
-
+        logger.info(f"[{NODE_ID}] Wanting to enter critical section")
+        state.requesting_cs = True
         send_request_to_all()
 
-        while len(replies_received) < len(OTHER_NODES):
-            time.sleep(0.5)
+        # Espera todos os replies
+        while len(state.replies_received) < len(OTHER_NODES):
+            time.sleep(1)
 
-        logger.info(f"[{NODE_ID}] >>> ENTERING CRITICAL SECTION <<<")
+        logger.info(f"[{NODE_ID}] Entering critical section")
+        # 🔥 Critical Section
         time.sleep(5)
-        logger.info(f"[{NODE_ID}] <<< LEAVING CRITICAL SECTION >>>")
 
-        requesting_cs = False
-        request_clock = None
+        logger.info(f"[{NODE_ID}] Exiting critical section")
 
+        state.requesting_cs = False
+        state.replies_received.clear()
+
+        # Envia release
         for node in OTHER_NODES:
             try:
+                import requests
                 requests.post(
                     f"http://{node}/release",
                     json={"node_id": NODE_ID},
