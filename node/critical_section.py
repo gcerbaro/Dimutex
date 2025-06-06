@@ -1,9 +1,8 @@
 import time
-from state import NodeState
+from state import state
 from communication import send_request_to_all
 from logger import logger
 from config import NODE_ID, OTHER_NODES
-
 
 def critical_section_loop():
     while True:
@@ -11,11 +10,11 @@ def critical_section_loop():
         time.sleep(10)
 
         logger.info(f"[{NODE_ID}] Wanting to enter critical section")
-        NodeState.requesting_cs = True
+        state.requesting_cs = True
         send_request_to_all()
 
         # Espera todos os replies
-        while not NodeState.got_all_replies(len(OTHER_NODES)):
+        while not state.got_all_replies(len(OTHER_NODES)):
             time.sleep(1)
 
 
@@ -25,8 +24,8 @@ def critical_section_loop():
 
         logger.info(f"[{NODE_ID}] Exiting critical section")
 
-        NodeState.requesting_cs = False
-        NodeState.replies_received.clear()
+        state.requesting_cs = False
+        state.replies_received.clear()
 
         # Envia release
         for node in OTHER_NODES:
