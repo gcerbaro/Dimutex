@@ -1,48 +1,50 @@
 import time
 from state import state
-from communication import send_request_to_all
+from communication import send_request_to_all, send_reply
 from logger import logger
 from config import NODE_ID, OTHER_NODES
-from communication import colors
+from communication import Colors
+
 
 def critical_section_loop():
     while True:
         # Simula o processo querendo acessar a CS
         time.sleep(10)
 
-        logger.info(f"{colors.RED}[{NODE_ID}] Wanting to enter critical section")
-        state.requesting_cs = True
+        logger.info(f"{Colors.YELLOW}[{NODE_ID}] Wanting to enter critical section")
+
+        # Atualiza o clock e marca intenção de acessar a CS
+        state.increment_clock()
+        request_clock = state.get_clock()
+        state.set_requesting_cs(True, request_clock)
         send_request_to_all()
 
         # Espera todos os replies
-        wait_start = time.time()
-        TIMEOUT = 20
-
-        while len(state.replies_received) < len(OTHER_NODES):
-            if time.time() - wait_start > TIMEOUT:
-                logger.warning(f"{colors.MAGENTA}[{NODE_ID}] Timeout waiting for replies")
+        #wait_start = time.time()
+        #TIMEOUT = 20
+        while(True):
+            if(state.got_all_replies(len(OTHER_NODES))):
+                state.set_in_cs(True)
+                logger.info(f"{Colors.RED}[{NODE_ID}] Entering critical section")
                 break
-            time.sleep(1)
 
-
-
-        logger.info(f"{colors.RED}[{NODE_ID}] Entering critical section")
-        # Critical Section
+        # Seção Crítica
         time.sleep(5)
 
-        logger.info(f"{colors.RED}[{NODE_ID}] Exiting critical section")
+        logger.info(f"{Colors.RED}[{NODE_ID}] Exiting critical section")
+        state.set_in_cs(False)
 
-        state.requesting_cs = False
-        state.replies_received.clear()
+        # Marca que não está mais solicitando CS
+        state.set_requesting_cs(False)
+        state.clear_replies()
 
-        # Envia release
-        for node in OTHER_NODES:
+        # Envia replies pendentes
+        with state.lock:
+            deferred = list(state.deferred_replies)
+            state.deferred_replies.clear()
+
+        for node_id in deferred:
             try:
-                import requests
-                requests.post(
-                    f"http://{node}/release",
-                    json={"node_id": NODE_ID},
-                    timeout=2,
-                )
+                send_reply(node_id + ":5000")
             except Exception as e:
-                logger.error(f"{colors.RESET}[{NODE_ID}] Failed to send release to {node}: {e}")
+                logger.error(f"{Colors.RESET}[{NODE_ID}] Failed to send deferred reply to {node_id}: {e}")

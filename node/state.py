@@ -5,9 +5,12 @@ class NodeState:
         self.clock = 0
         self.request_clock = None
         self.requesting_cs = False
+        self.in_cs = False
         self.replies_received = set()
         self.deferred_replies = set()
         self.lock = threading.Lock()
+        
+
 
     def increment_clock(self, received_clock=None):
         with self.lock:
@@ -28,6 +31,11 @@ class NodeState:
     def get_request_state(self):
         with self.lock:
             return self.requesting_cs, self.request_clock
+        
+    def set_in_cs(self, value: bool):
+        with self.lock:
+            self.in_cs = value
+
 
     def add_reply(self, sender_id):
         with self.lock:
