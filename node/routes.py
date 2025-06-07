@@ -1,12 +1,10 @@
 from flask import Blueprint, request, jsonify
 from state import state
 from config import NODE_ID
-from communication import send_reply, colors
+from communication import send_reply, Colors
 from logger import logger
 
 bp = Blueprint('routes', __name__)
-def node_number(id):
-    return int(id.replace("node", ""))
 
 
 @bp.route("/request", methods=["POST"])
@@ -16,26 +14,29 @@ def on_request():
     sender_clock = data["clock"]
 
     state.increment_clock(sender_clock)
-
-    logger.info(f"{colors.CYAN}[{NODE_ID}] Received REQUEST from {sender_id} with clock {sender_clock}")
+    logger.info(f"{Colors.YELLOW}[{NODE_ID}] Received REQUEST from {sender_id} with clock {sender_clock}")
 
     defer = False
-    requesting, my_clock = state.get_request_state()
-    if requesting:
-        if (sender_clock < state.request_clock) or (sender_clock == state.request_clock and sender_id < NODE_ID):
-            defer = True
-    else:
-        send_reply(sender_id + ":5000")
-
-
+    with state.lock:
+        if state.in_cs or state.requesting_cs:
+            if (
+                (state.request_clock < sender_clock)
+                or (state.request_clock == sender_clock and NODE_ID < sender_id)
+            ):
+                defer = True
+            else:
+                defer = False
+        else:
+            defer = False
 
     if defer:
+        logger.info(f"{Colors.MAGENTA}[{NODE_ID}] Deferred reply to {sender_id}")
         state.deferred_replies.add(sender_id)
-        logger.info(f"{colors.MAGENTA}[{NODE_ID}] Deferred reply to {sender_id}")
     else:
         send_reply(sender_id + ":5000")
 
     return jsonify({"ok": True})
+
 
 
 @bp.route("/reply", methods=["POST"])
@@ -45,21 +46,7 @@ def on_reply():
 
     state.increment_clock()
 
-    logger.info(f"{colors.CYAN}[{NODE_ID}] Received REPLY from {sender_id}")
+    logger.info(f"{Colors.CYAN}[{NODE_ID}] Received REPLY from {sender_id}")
     state.replies_received.add(sender_id)
-
-    return jsonify({"ok": True})
-
-
-@bp.route("/release", methods=["POST"])
-def on_release():
-    data = request.get_json()
-    sender_id = data["node_id"]
-
-    logger.info(f"{colors.GREEN}[{NODE_ID}] Received RELEASE from {sender_id}")
-
-    if sender_id in state.deferred_replies:
-        send_reply(sender_id + ":5000")
-        state.deferred_replies.remove(sender_id)
 
     return jsonify({"ok": True})

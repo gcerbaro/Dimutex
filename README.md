@@ -1,7 +1,7 @@
 # Dimutex
 - [DI]stributed [MUT]ual [EX]clusion is a 'Ubiquitous Computing: Cloud, IOT and Smart Environments' assignment.
 - This is a Python implementation of a Ricart-Agrawala algorithm in a simulated distributed system.
-- The simulation os done using docker containers as nodes of a DS.
+- The simulation is done using docker containers as nodes of a DS.
 - The algorithm controls the access of each of the networks' nodes to the critical section.
 
 # Pre-requisites
