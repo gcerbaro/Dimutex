@@ -3,11 +3,12 @@ from config import NODE_ID, OTHER_NODES
 from logger import logger
 from state import state
 
+
 def send_request_to_all():
     state.increment_clock()
     request_clock = state.get_clock()
     state.set_requesting_cs(True, request_clock=request_clock)
-    logger.info(f"Requesting critical section at clock {request_clock}")
+    logger.info(f"{colors.YELLOW}Requesting critical section at clock {request_clock}")
 
     for node in OTHER_NODES:
         try:
@@ -17,7 +18,7 @@ def send_request_to_all():
                 timeout=2,
             )
         except Exception as e:
-            logger.error(f"Failed to send request to {node}: {e}")
+            logger.error(f"{colors.RESET}Failed to send request to {node}: {e}")
 
 def send_reply(node):
     state.increment_clock()
@@ -27,6 +28,14 @@ def send_reply(node):
             json={"node_id": NODE_ID},
             timeout=2,
         )
-        logger.info(f"[{NODE_ID}] Sent reply to {node}")
+        logger.info(f"{colors.CYAN}[{NODE_ID}] Sent reply to {node}")
     except Exception as e:
-        logger.error(f"[{NODE_ID}] Failed to send reply to {node}: {e}")
+        logger.error(f"{colors.RESET}[{NODE_ID}] Failed to send reply to {node}: {e}")
+
+class colors:
+    YELLOW = "\033[93m"
+    CYAN = "\033[96m"
+    RESET = "\033[0m"
+    RED = "\033[91m"
+    GREEN = "\033[92m"
+    MAGENTA = "\033[95m"
