@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify
 from state import state
 from config import NODE_ID
-from communication import send_reply, Colors
-from logger import logger
+from communication import send_reply
+from logger import logger, Colors
 
 bp = Blueprint('routes', __name__)
 

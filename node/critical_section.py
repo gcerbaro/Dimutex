@@ -1,9 +1,23 @@
 import time
 from state import state
 from communication import send_request_to_all, send_reply
-from logger import logger
+from logger import logger, Colors
 from config import NODE_ID, OTHER_NODES
-from communication import Colors
+import requests
+
+SHARED_DATA_URL = "http://shared-data-container:6000/data"
+
+def access_shared_data():
+    try:
+        logger.info(f"{Colors.BLUE}[{NODE_ID}] Editing data...")
+        res = requests.get(SHARED_DATA_URL)
+        data = res.json()
+
+        new_value = data["value"] + 1
+        res = requests.post(SHARED_DATA_URL, json={"value": new_value})
+        logger.info(f"{Colors.BLUE}[{NODE_ID}] Data Edited Succesfully!")
+    except Exception as e:
+        logger.error(f"[{NODE_ID}] Error Accessing Shared Data: {e}")
 
 
 def critical_section_loop():
@@ -29,6 +43,7 @@ def critical_section_loop():
                 break
 
         # Seção Crítica
+        access_shared_data()
         time.sleep(5)
 
         logger.info(f"{Colors.RED}[{NODE_ID}] Exiting critical section")

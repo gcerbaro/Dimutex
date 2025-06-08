@@ -1,8 +1,7 @@
 import requests
 from config import NODE_ID, OTHER_NODES
-from logger import logger
+from logger import logger, Colors
 from state import state
-
 
 def send_request_to_all():
     state.increment_clock()
@@ -31,11 +30,3 @@ def send_reply(node):
         logger.info(f"{Colors.CYAN}[{NODE_ID}] Sent reply to {node}")
     except Exception as e:
         logger.error(f"{Colors.RESET}[{NODE_ID}] Failed to send reply to {node}: {e}")
-
-class Colors:
-    YELLOW = "\033[93m"
-    CYAN = "\033[96m"
-    RESET = "\033[0m"
-    RED = "\033[91m"
-    GREEN = "\033[92m"
-    MAGENTA = "\033[95m"

@@ -3,7 +3,6 @@ import colorlog
 import logging
 
 class Colors:
-    BLUE = "\033[34m"
     LIGHT_GRAY = "\033[37m"
     YELLOW = "\033[93m"
     CYAN = "\033[96m"

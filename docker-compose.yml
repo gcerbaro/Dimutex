@@ -1,6 +1,14 @@
 version: '3'
 
 services:
+  shared-data:
+    build: ./shared-data
+    container_name: shared-data-container
+    ports:
+      - "6000:6000"
+    networks:
+      - cluster
+
   node1:
     build: .
     environment:

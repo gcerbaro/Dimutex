@@ -9,8 +9,7 @@ class NodeState:
         self.replies_received = set()
         self.deferred_replies = set()
         self.lock = threading.Lock()
-        
-
+    
 
     def increment_clock(self, received_clock=None):
         with self.lock:
